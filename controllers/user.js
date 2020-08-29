@@ -1,6 +1,7 @@
-/* eslint-disable consistent-return, newline-per-chained-call */
+/* eslint-disable consistent-return, newline-per-chained-call, object-curly-newline */
 const bcrypt = require('bcryptjs');
 const PasswordValidator = require('password-validator');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const passwordValidatorSchema = new PasswordValidator();
@@ -38,24 +39,12 @@ module.exports.getUser = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const {
-    name,
-    about,
-    avatar,
-    email,
-    password,
-  } = req.body;
+  const { name, about, avatar, email, password } = req.body;
   if (!passwordValidatorSchema.validate(password)) {
     return res.status(401).send({ message: 'пароль должен быть не менее 8 символов, содержать заглавные и строчные буквы, цифры' });
   }
   bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
-    }))
+    .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -65,4 +54,34 @@ module.exports.createUser = (req, res) => {
       }
     });
 };
-/* eslint-disable consistent-return, newline-per-chained-call */
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        // хеши не совпали — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+
+      // аутентификация успешна
+      const token = jwt.sign({ _id: User._id }, 'some-secret-key', { expiresIn: '2w' });
+      console.log({ token });
+      res.cookie('jwt', token, {
+        httpOnly: true,
+      });
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+};
+/* eslint-disable consistent-return, newline-per-chained-call, object-curly-newline */
