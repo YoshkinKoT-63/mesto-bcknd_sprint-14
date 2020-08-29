@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cards = require('./routes/cards');
 const users = require('./routes/users');
+const { login, createUser } = require('./controllers/user');
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/cards', cards);
 app.use('/users', users);
 app.use('/', (req, res) => {
