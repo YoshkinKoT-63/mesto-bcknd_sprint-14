@@ -4,6 +4,7 @@ const PasswordValidator = require('password-validator');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+const { NODE_ENV, JWT_SECRET } = process.env;
 const passwordValidatorSchema = new PasswordValidator();
 
 passwordValidatorSchema
@@ -73,7 +74,12 @@ module.exports.login = (req, res) => {
       }
 
       // аутентификация успешна
-      const token = jwt.sign({ _id: User._id }, 'some-secret-key', { expiresIn: '2w' });
+      const token = jwt.sign(
+        { _id: User._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        { expiresIn: '2w' },
+      );
+
       console.log({ token });
       res.cookie('jwt', token, {
         httpOnly: true,

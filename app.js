@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-require('dotenv').config();
 const cards = require('./routes/cards');
 const users = require('./routes/users');
 const { login, createUser } = require('./controllers/user');
