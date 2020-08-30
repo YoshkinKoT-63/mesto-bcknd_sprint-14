@@ -40,7 +40,6 @@ module.exports.getUser = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  console.log(req.body);
   const { name, about, avatar, email, password } = req.body;
   if (!passwordValidatorSchema.validate(password)) {
     return res.status(401).send({ message: 'пароль должен быть не менее 8 символов, содержать заглавные и строчные буквы, цифры' });
@@ -65,7 +64,7 @@ module.exports.login = (req, res) => {
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-        { expiresIn: '2w' },
+        { expiresIn: '7d' },
       );
 
       res.cookie('jwt', token, {
